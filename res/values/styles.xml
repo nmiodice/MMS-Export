@@ -1,0 +1,40 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="Theme.AppCompat.Light">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+    </style>
+
+    <!-- Application theme. -->
+	<style name="AppTheme" parent="AppBaseTheme">
+	    <item name="android:actionBarStyle">@style/actionbar</item>
+	    <item name="android:windowContentOverlay">@null</item>
+	</style>
+	
+	<style name="actionbar" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+    	<item name="android:background">@color/primary</item>
+	</style>
+	
+	<style name="directions_text">
+	    <item name="android:background">@color/primaryDark</item>
+	    <item name="android:textColor">@color/textOnPrimary</item>
+	    <item name="android:paddingTop">16dp</item>
+	    <item name="android:paddingBottom">16dp</item>
+	    <item name="android:textSize">22sp</item>
+	    <item name="android:layout_width">fill_parent</item>
+	    <item name="android:layout_height">wrap_content</item>
+	    <item name="android:gravity">center_horizontal</item>
+	</style>
+	
+	<style name="button" parent="directions_text">
+	    <item name="android:background">@drawable/rounded_button</item>
+	</style>
+
+</resources>

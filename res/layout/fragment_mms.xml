@@ -1,0 +1,54 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    tools:context="com.iodice.mmsexport.MmsActivity$PlaceholderFragment" >
+
+    <TextView
+        style="@style/directions_text"
+        android:id="@+id/sms_mms_selection_text"
+        android:text="@string/sms_mms_selection_text"
+		/>
+    
+    <ListView
+        android:id="@+id/sms_mms_thread_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sms_mms_selection_text" />
+    
+    <RelativeLayout
+        android:id="@+id/sms_mms_progress_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+	    android:layout_margin="16dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/dark_background" 
+        android:visibility="gone"
+         > 
+		
+		<ProgressBar
+	        android:id="@+id/sms_mms_query_progress"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        style="@android:style/Widget.ProgressBar.Horizontal"
+	        android:layout_centerInParent="true"
+	        android:layout_marginTop="64dp"
+	        android:layout_marginLeft="64dp"
+	        android:layout_marginRight="64dp"
+	        android:layout_marginBottom="48dp"
+	        />
+		
+		<TextView
+		    android:id="@+id/sms_mms_query_progress_text"
+		    android:textSize="18sp"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_centerHorizontal="true"
+	        android:layout_below="@id/sms_mms_query_progress"
+	        android:layout_marginBottom="16dp"
+	        />
+ 	
+ 	</RelativeLayout>
+ 	
+    
+</RelativeLayout>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MmsExport</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="mms_no_images_found">No images found in this conversation</string>
+    <string name="img_select_all">Select all images</string>
+    <string name="sms_mms_query_convos">Searching conversation thread</string>
+    <string name="sms_mms_query_images">Retrieving images from conversation</string>
+	<string name="share_selected_images">Share selected images</string>
+	<string name="error_writing_image_data">Error writing image data</string>
+	<string name="no_images_selected">Nothing selected!</string>
+	<string name="zip_image_file_name">images.zip</string>
+	<string name="zip_image_individual_file_format">image%d</string>
+	<string name="zip_image_update_progress_text_format">Processing image %1$d/%2$d</string>
+	<string name="zip_image_share_message">Share with</string>
+	<string name="sms_mms_selection_text">Select conversation</string>
+	<string name="image_selection_text">Select images to export</string>
+	<string name="mms_sms_find_convo">Find convo</string>
+	<string name="full_screen_image"></string>
+</resources>

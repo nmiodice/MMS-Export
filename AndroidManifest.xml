@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.iodice.mmsexport"
+    android:versionCode="1"
+    android:versionName="1.0" >
+    <uses-permission android:name="android.permission.READ_SMS" />
+    
+    <uses-sdk
+        android:minSdkVersion="11"
+        android:targetSdkVersion="21" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="com.iodice.mmsexport.MmsActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.iodice.mmsexport.FullScreenImageActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.iodice.mmsexport.ImageGridActivity"
+            android:label="@string/app_name" 
+			android:parentActivityName="com.iodice.mmsexport.MmsActivity" >
+        </activity>
+        
+        <!-- Shares image data with other applications -->
+		<provider
+            android:name="com.iodice.mmsexport.ZipFileProvider"
+            android:authorities="com.iodice.mmsexport.ZipFileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            >
+            <meta-data
+		        android:name="android.support.FILE_PROVIDER_PATHS"
+		        android:resource="@xml/file_paths" />            
+        </provider>
+    </application>
+
+</manifest>
