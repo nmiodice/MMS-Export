@@ -15,6 +15,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -473,51 +476,91 @@ public class AsyncImageAdapter extends BaseAdapter {
 	 */
 	class MultiTouchDetectorListener implements View.OnTouchListener {
 
-		long lastUpPress;
+		long lastUpPress = -1;
 		long DOUBLE_CLICK_THRESH = 200;
-		long LONG_CLICK_THRESH = 500;
-		int lastPosClicked = -1;
+		long LONG_CLICK_THRESH = 750;
 		long lastDownPress = -1;
+		int lastPosClicked = -1;
+		boolean isLastClickSingle;
+		boolean isDepressed;
+
+		private void onSingleClick(ImageView img) {
+			int pos = (Integer) img.getTag();
+			if (mIsSelected[pos] == true)
+				mIsSelected[pos] = false;
+			else
+				mIsSelected[pos] = true;
+			setSelectionState(img);
+		}
+
+		private void onDoubleClick(ImageView img) {
+			Intent intent;
+			int pos = (Integer) img.getTag();
+
+			intent = new Intent(mContext, FullScreenImageActivity.class);
+			intent.putExtra(FullScreenImageActivity.BITMAP_URI, MMS_PART_URI
+					+ "/" + mImgIDs.get(pos));
+			mContext.startActivity(intent);
+		}
 
 		@SuppressLint("ClickableViewAccessibility")
 		@Override
 		public boolean onTouch(View v, MotionEvent event) {
-			ImageView img = (ImageView) v;
+			final ImageView img = (ImageView) v;
 			int pos = (Integer) img.getTag();
-			Intent intent;
-			boolean isDoubleClick = false;
-			boolean isLongClick = false;
-			boolean isSingleClick = false;
+			boolean isSingleClick = true;
 
 			if (MotionEvent.ACTION_DOWN == event.getAction()) {
-				lastDownPress = System.currentTimeMillis();
+				/* detect double tap */
 				if (lastPosClicked == pos
-						&& System.currentTimeMillis() - lastUpPress <= DOUBLE_CLICK_THRESH)
-					isDoubleClick = true;
-				else
-					isSingleClick = true;
+						&& System.currentTimeMillis() - lastDownPress <= DOUBLE_CLICK_THRESH) {
+					isSingleClick = false;
+				}
+				lastDownPress = System.currentTimeMillis();
+				isDepressed = true;
 			} else if (MotionEvent.ACTION_UP == event.getAction()) {
-				lastUpPress = System.currentTimeMillis();
-				lastPosClicked = pos;
-
-				if (System.currentTimeMillis() - lastDownPress >= LONG_CLICK_THRESH)
-					isLongClick = true;
+				/* detect long tap */
+				if (System.currentTimeMillis() - lastDownPress >= LONG_CLICK_THRESH) {
+					isSingleClick = false;
+				}
+				isDepressed = false;
 			}
+			lastPosClicked = pos;
 
-			if (isDoubleClick || isLongClick) {
-				mIsSelected[pos] = !mIsSelected[pos];
-				setSelectionState(img);
-
-				intent = new Intent(mContext, FullScreenImageActivity.class);
-				intent.putExtra(FullScreenImageActivity.BITMAP_URI,
-						MMS_PART_URI + "/" + mImgIDs.get(pos));
-				mContext.startActivity(intent);
-			} else if (isSingleClick) {
-				if (mIsSelected[pos] == true)
-					mIsSelected[pos] = false;
-				else
-					mIsSelected[pos] = true;
-				setSelectionState(img);
+			/* responds to the event appropriately */
+			if (isSingleClick && MotionEvent.ACTION_DOWN == event.getAction()) {
+				isLastClickSingle = true;
+				/*
+				 * This is a bit tricky. Here is what's going on:
+				 * 	1. A new thread is started that essentially waits for the 
+				 * 		duration of DOUBLE_CLICK_THRESH. This is not done in the
+				 * 		UI thread, because if it was, it would block the UI and
+				 * 		prevent proper detection of double clicks 
+				 *  2. If, after waiting the duration of DOUBLE_CLICK_THRESH, it
+				 *  	is determined that the click is a real single click,
+				 *  	the onSingleClick logic is invoked on the UI thread,
+				 *  	because it cannot be invoked in the background thread
+				 */
+				new Thread(new Runnable() {
+					public void run() {
+						try {
+							Thread.sleep(DOUBLE_CLICK_THRESH);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						/* if these hold, then it is a real single click */
+						if (isLastClickSingle == true && isDepressed == false)
+							new Handler(Looper.getMainLooper())
+									.post(new Runnable() {
+										public void run() {
+											onSingleClick(img);
+										}
+									});
+					}
+				}).start();
+			} else if (!isSingleClick) {
+				onDoubleClick(img);
+				isLastClickSingle = false;
 			}
 			return true;
 		}
