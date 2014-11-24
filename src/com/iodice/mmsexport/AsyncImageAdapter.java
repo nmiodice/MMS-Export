@@ -17,7 +17,6 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -66,7 +65,7 @@ public class AsyncImageAdapter extends BaseAdapter {
 
 	/**
 	 * {@link AsyncImageAdapter#mImageGridView} A handle to the grid view
-	 * holding these images. Used primarially to figure out how big the images
+	 * holding these images. Used primarily to figure out how big the images
 	 * should be
 	 */
 	private GridView mImageGridView;
@@ -476,13 +475,19 @@ public class AsyncImageAdapter extends BaseAdapter {
 	 */
 	class MultiTouchDetectorListener implements View.OnTouchListener {
 
-		long lastUpPress = -1;
-		long DOUBLE_CLICK_THRESH = 200;
-		long LONG_CLICK_THRESH = 750;
-		long lastDownPress = -1;
-		int lastPosClicked = -1;
-		boolean isLastClickSingle;
-		boolean isDepressed;
+		long DOUBLE_CLICK_THRESH = 250;
+		long LONG_CLICK_THRESH = 650;
+		/* the last time when a view was touched, measured from ACTION_DOWN */
+		long mLastDownPressTime = -1;
+		int mLastPosClickedPos = -1;
+		/* used to compare presses when determining if a click is a single click */ 
+		boolean mIsLastClickSingle;
+		/* tracks whether or not a finger is pressing on the screen */
+		boolean mIsDepressed;
+		/* used to compare presses when determining if a click is a long click */
+		int mLastDownPressHash;
+		/* used to detect false long clicks, such as a scroll event */
+		boolean mLongClickFalseAlarm;
 
 		private void onSingleClick(ImageView img) {
 			int pos = (Integer) img.getTag();
@@ -498,9 +503,17 @@ public class AsyncImageAdapter extends BaseAdapter {
 			int pos = (Integer) img.getTag();
 
 			intent = new Intent(mContext, FullScreenImageActivity.class);
-			intent.putExtra(FullScreenImageActivity.BITMAP_URI, MMS_PART_URI
-					+ "/" + mImgIDs.get(pos));
+			intent.putExtra(FullScreenImageActivity.BITMAP_URI_FORMAT, 
+					MMS_PART_URI + "/%s");
+			intent.putStringArrayListExtra(
+					FullScreenImageActivity.BITMAP_IMAGE_ID_LIST, mImgIDs);
+			intent.putExtra(
+					FullScreenImageActivity.BITMAP_IDX_TO_SHOW, pos);
 			mContext.startActivity(intent);
+		}
+
+		private void onLongClick(ImageView img) {
+			onDoubleClick(img);
 		}
 
 		@SuppressLint("ClickableViewAccessibility")
@@ -512,25 +525,34 @@ public class AsyncImageAdapter extends BaseAdapter {
 
 			if (MotionEvent.ACTION_DOWN == event.getAction()) {
 				/* detect double tap */
-				if (lastPosClicked == pos
-						&& System.currentTimeMillis() - lastDownPress <= DOUBLE_CLICK_THRESH) {
+				if (mLastPosClickedPos == pos
+						&& System.currentTimeMillis() - mLastDownPressTime <= DOUBLE_CLICK_THRESH) {
 					isSingleClick = false;
 				}
-				lastDownPress = System.currentTimeMillis();
-				isDepressed = true;
+				mLastDownPressTime = System.currentTimeMillis();
+				mIsDepressed = true;
+				mLastDownPressHash = ("" + pos + "_" + mLastDownPressTime).hashCode();
 			} else if (MotionEvent.ACTION_UP == event.getAction()) {
-				/* detect long tap */
-				if (System.currentTimeMillis() - lastDownPress >= LONG_CLICK_THRESH) {
-					isSingleClick = false;
-				}
-				isDepressed = false;
+				mIsDepressed = false;
+			} else if (MotionEvent.ACTION_MOVE == event.getAction() ||
+					MotionEvent.ACTION_CANCEL == event.getAction()) {
+				mLongClickFalseAlarm = true;
 			}
-			lastPosClicked = pos;
+			mLastPosClickedPos = pos;
 
 			/* responds to the event appropriately */
 			if (isSingleClick && MotionEvent.ACTION_DOWN == event.getAction()) {
-				isLastClickSingle = true;
+				mIsLastClickSingle = true;
+				mLongClickFalseAlarm = false;
 				/*
+				 * Launch two worker threads which will determine the click type
+				 * of the press. This is necessary because:
+				 * 	1. A double click must be considered before deciding whether
+				 *		or not the press is a real single click
+				 *	2. A long click action must be launched only if a view is
+				 *		held for a period of time, but care must be taken to not
+				 *		block the UI thread
+				 *
 				 * This is a bit tricky. Here is what's going on:
 				 * 	1. A new thread is started that essentially waits for the 
 				 * 		duration of DOUBLE_CLICK_THRESH. This is not done in the
@@ -549,7 +571,7 @@ public class AsyncImageAdapter extends BaseAdapter {
 							e.printStackTrace();
 						}
 						/* if these hold, then it is a real single click */
-						if (isLastClickSingle == true && isDepressed == false)
+						if (mIsLastClickSingle == true && mIsDepressed == false)
 							new Handler(Looper.getMainLooper())
 									.post(new Runnable() {
 										public void run() {
@@ -558,9 +580,33 @@ public class AsyncImageAdapter extends BaseAdapter {
 									});
 					}
 				}).start();
+				
+				/*
+				 * Similar to the logic for a single click detection is used
+				 * for long click detection
+				 */
+				new Thread(new Runnable() {
+					public void run() {
+						int pressHash = mLastDownPressHash;
+						try {
+							Thread.sleep(LONG_CLICK_THRESH);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						/* if these hold, then it is a real long click */
+						if (pressHash == mLastDownPressHash && mIsDepressed == true &&
+								mLongClickFalseAlarm == false)
+							new Handler(Looper.getMainLooper())
+									.post(new Runnable() {
+										public void run() {
+											onLongClick(img);
+										}
+									});
+					}
+				}).start();
 			} else if (!isSingleClick) {
 				onDoubleClick(img);
-				isLastClickSingle = false;
+				mIsLastClickSingle = false;
 			}
 			return true;
 		}

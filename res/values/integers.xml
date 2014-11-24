@@ -2,5 +2,5 @@
 <resources>
     <integer name="image_grid_cols_for_portrait">3</integer>
     <integer name="image_grid_cols_for_landscape">5</integer>
-    <integer name="image_fade_duration">175</integer>
+    <integer name="image_fade_duration">250</integer>
 </resources>
