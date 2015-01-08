@@ -131,6 +131,8 @@ public class AsyncImageAdapter extends BaseAdapter {
 	}
 
 	public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
+		if (key == null || bitmap == null)
+			return;
 		if (getBitmapFromMemCache(key) == null) {
 			mMemoryCache.put(key, bitmap);
 		}
@@ -401,6 +403,7 @@ public class AsyncImageAdapter extends BaseAdapter {
 			}
 			if (bmp != null)
 				return bmp;
+			
 			return ImageUtils.getImageFromContentProvider(MMS_PART_URI + "/"
 					+ mImgID, true, mImageGridView.getNumColumns(), mContext);
 		}

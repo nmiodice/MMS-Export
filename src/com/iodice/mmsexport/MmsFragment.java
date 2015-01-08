@@ -9,6 +9,7 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -273,6 +274,7 @@ public class MmsFragment extends Fragment implements
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		switch (loader.getId()) {
 		case THREAD_LOADER:
+			DatabaseUtils.dumpCursor(cursor);
 			mThreadAdapter.changeCursor(cursor);
 		default:
 			/* an invalid ID was passed in */

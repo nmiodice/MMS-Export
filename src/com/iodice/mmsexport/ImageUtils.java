@@ -103,11 +103,11 @@ public class ImageUtils {
 		} catch (IOException e) {
 		} catch (NullPointerException npe) {
 			/*
-			 * if the callign context is no longer here, its not a problem that
+			 * if the calling context is no longer here, its not a problem that
 			 * we get an NPE. Otherwise, there is some type of programming error
 			 */
 			if (context != null)
-				throw npe;
+				bitmap = null;
 		} finally {
 			if (is != null) {
 				try {
